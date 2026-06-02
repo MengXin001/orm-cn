@@ -219,7 +219,7 @@ export function RailwayMap() {
       />
 
       {/* Map Container */}
-      <div className="md:ml-80 flex-1">
+      <div className="mt-12 md:ml-80 md:mt-0 flex-1">
         <div ref={mapContainerRef} className="h-full w-full" />
       </div>
     </div>

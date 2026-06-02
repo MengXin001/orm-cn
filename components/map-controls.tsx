@@ -154,18 +154,18 @@ export function MapControls(props: MapControlsProps) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex fixed left-0 top-0 z-20 h-full w-80 flex-col border-r border-border bg-card">
         {/* Header */}
-        <div className="border-b border-border p-6">
+        <div className="border-b border-border p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Train className="h-5 w-5" />
             </div>
             <div>
               <h1 className="text-xl font-semibold text-foreground">{text.title}</h1>
-              <div className='mt-[0px] flex items-baseline gap-1'>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">最后更新于:</p>
-                <p className="mt-1 text-xs font-medium text-foreground">{updateTime}</p>
+              <div className="flex items-center whitespace-nowrap">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground pr-1">最后更新于:</p>
+                <p className="text-xs font-medium text-foreground">{updateTime}</p>
                 {agoHours > 0 && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">, {agoHours} 小时前</p>
+                  <p className="text-xs text-muted-foreground">, {agoHours}小时前</p>
                 )}
               </div>
             </div>
@@ -175,7 +175,7 @@ export function MapControls(props: MapControlsProps) {
       </aside>
 
       {/* Mobile Header & Sheet */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-20 flex items-center gap-3 border-b border-border bg-card p-3">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-20 flex items-center gap-3 border-b border-border bg-card p-3 h-12">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="shrink-0">
@@ -191,7 +191,7 @@ export function MapControls(props: MapControlsProps) {
                 </div>
                 <div className="text-left">
                   <p className="text-base font-semibold">{text.title}</p>
-                  <p className="text-xs font-normal text-muted-foreground">最后更新于: {updateTime}{agoHours > 0 && (
+                  <p className="items-center whitespace-nowrap text-xs font-normal text-muted-foreground">最后更新于: {updateTime}{agoHours > 0 && (
                     <p className="mt-0.5 text-xs text-muted-foreground">, {agoHours} 小时前</p>
                   )}</p>
                 </div>
