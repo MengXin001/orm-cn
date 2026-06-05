@@ -39,7 +39,7 @@ export async function onRequest(context) {
       newResponseHeaders.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
       // Disable caching for real-time requests
-      newResponseHeaders.set('Cache-Control', 'max-age=604800, s-maxage=604800, stale-while-revalidate');
+      newResponseHeaders.set('Cache-Control', 'no-cache');
 
       // Remove cookie headers for security
       newResponseHeaders.delete('Set-Cookie');
