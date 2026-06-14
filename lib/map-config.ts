@@ -138,7 +138,7 @@ export function buildStyle(baseMapKey: string, tokens: TokenConfig): string | ob
   }
 }
 
-const RAILWAY_TILE_URL = 'https://tiles.openrailwaymap.org'
+const RAILWAY_TILE_URL = 'https://orm-tiles.moexin.cn'
 
 export function ensureRailwayOverlay(map: maplibregl.Map, mode: string): void {
   const sourceId = 'openrailwaymap'
