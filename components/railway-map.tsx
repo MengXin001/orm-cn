@@ -13,12 +13,15 @@ import {
   isBaseMapAvailable,
   type TokenConfig,
 } from '@/lib/map-config'
+import { setupTileCache, setupViewportOptimization } from '@/lib/map-performance'
 import { MapControls } from './map-controls'
+import { useTheme } from '@/hooks/use-theme'
 
 const TEXT = {
   title: 'OpenRailwayMap CN',
   basemapLabel: '底图',
   railwayLabel: '选择地图样式',
+  legendLabel: '图例',
   locateButton: '定位',
   locateStatus: '定位状态',
   available: '已配置',
@@ -106,12 +109,15 @@ export function RailwayMap() {
       style: buildStyle(baseMap, tokens) as maplibregl.StyleSpecification | string,
       center: DEFAULT_VIEW.center,
       zoom: DEFAULT_VIEW.zoom,
-      maxPitch: 0,
+      maxPitch: 80,
+      pitch: 0,
+      bearing: 0,
       attributionControl: true,
     })
 
     mapRef.current = map
-
+    setupTileCache()
+    const viewportCleanup = setupViewportOptimization(map)
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'top-right')
     map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left')
 

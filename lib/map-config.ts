@@ -14,6 +14,7 @@ export interface BasemapOption {
 export const BASEMAPS: BasemapOption[] = [
   { key: 'osm', label: 'OpenStreetMap' },
   { key: 'esri', label: 'Esri World Imagery' },
+  { key: 'esri_label', label: 'Esri World Imagery Label', requiresToken: 'tdt' },
   { key: 'tdt_vec', label: '天地图矢量', requiresToken: 'tdt' },
   { key: 'tdt_img', label: '天地图影像', requiresToken: 'tdt' },
   { key: 'mapbox_streets', label: 'Mapbox Streets', requiresToken: 'mapbox' },
@@ -67,6 +68,31 @@ export function buildStyle(baseMapKey: string, tokens: TokenConfig): string | ob
           },
         },
         layers: [{ id: 'esri-layer', type: 'raster', source: 'esri' }],
+      }
+    case 'esri_label':
+      return {
+        version: 8,
+        sources: {
+          esri: {
+            type: 'raster',
+            tiles: [
+              'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            ],
+            tileSize: 256,
+            attribution: '&copy; Esri, &copy; 天地图 审图号：GS（2025）1508号',
+          },
+          'tdt-cia': {
+            type: 'raster',
+            tiles: [
+              `https://t0.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tokens.tdt}`,
+            ],
+            tileSize: 256,
+          },
+        },
+        layers: [
+          { id: 'esri-layer', type: 'raster', source: 'esri' },
+          { id: 'tdt-cia-layer', type: 'raster', source: 'tdt-cia' },
+        ],
       }
     case 'tdt_vec':
       return {
@@ -129,7 +155,7 @@ export function buildStyle(baseMapKey: string, tokens: TokenConfig): string | ob
         sources: {
           osm: {
             type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tiles: ['https://osm-tiles.moexin.cn/{z}/{x}/{y}.png'],
             tileSize: 256
           },
         },
