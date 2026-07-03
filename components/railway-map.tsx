@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import {
   BASEMAPS,
-  RAILWAY_MODES,
   DEFAULT_VIEW,
+  RAILWAY_MODES,
   buildStyle,
   ensureRailwayOverlay,
   getDefaultBaseMapKey,
@@ -15,13 +15,15 @@ import {
 } from '@/lib/map-config'
 import { setupTileCache, setupViewportOptimization } from '@/lib/map-performance'
 import { MapControls } from './map-controls'
-import { useTheme } from '@/hooks/use-theme'
 
 const TEXT = {
   title: 'OpenRailwayMap CN',
   basemapLabel: '底图',
   railwayLabel: '选择地图样式',
   legendLabel: '图例',
+  themeToggleLabel: '切换主题',
+  themeToDarkLabel: '切换到夜间模式',
+  themeToLightLabel: '切换到日间模式',
   locateButton: '定位',
   locateStatus: '定位状态',
   available: '已配置',
@@ -61,7 +63,6 @@ export function RailwayMap() {
   const activeBase = baseOptions.find((item) => item.key === baseMap) ?? baseOptions[0]
   const activeRail = RAILWAY_MODES.find((item) => item.key === railMode) ?? RAILWAY_MODES[0]
 
-  // Fetch timestamp
   useEffect(() => {
     fetch('/v2/timestamp')
       .then((response) => response.text())
@@ -82,7 +83,6 @@ export function RailwayMap() {
       })
   }, [])
 
-  // Localize controls
   const localizeControls = useCallback((container: HTMLElement) => {
     const labels: [string, string][] = [
       ['.maplibregl-ctrl-zoom-in', '放大'],
@@ -100,7 +100,6 @@ export function RailwayMap() {
     })
   }, [])
 
-  // Initialize map
   useEffect(() => {
     if (!mapContainerRef.current) return
 
@@ -117,7 +116,7 @@ export function RailwayMap() {
 
     mapRef.current = map
     setupTileCache()
-    const viewportCleanup = setupViewportOptimization(map)
+    setupViewportOptimization(map)
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'top-right')
     map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left')
 
@@ -126,7 +125,7 @@ export function RailwayMap() {
       trackUserLocation: true,
       showUserHeading: true,
       showAccuracyCircle: true,
-      fitBoundsOptions: { maxZoom: 14 },
+      fitBoundsOptions: { maxZoom: 20 },
     })
 
     geolocateRef.current = geolocate
@@ -160,7 +159,6 @@ export function RailwayMap() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Update railway mode
   useEffect(() => {
     const map = mapRef.current
     if (map && map.isStyleLoaded()) {
@@ -168,7 +166,6 @@ export function RailwayMap() {
     }
   }, [railMode])
 
-  // Update base map
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
@@ -200,13 +197,13 @@ export function RailwayMap() {
       setLocateStatus('error')
       return
     }
+
     setLocateStatus('locating')
     geolocateRef.current.trigger()
   }
 
   return (
-    <div className="relative flex h-full w-full">
-      {/* Sidebar */}
+    <div className="relative flex h-full w-full bg-background">
       <MapControls
         baseOptions={baseOptions}
         railwayModes={RAILWAY_MODES}
@@ -224,8 +221,7 @@ export function RailwayMap() {
         onLocate={handleLocate}
       />
 
-      {/* Map Container */}
-      <div className="mt-12 md:ml-80 md:mt-0 flex-1">
+      <div className="mt-12 flex-1 bg-background md:ml-80 md:mt-0">
         <div ref={mapContainerRef} className="h-full w-full" />
       </div>
     </div>
