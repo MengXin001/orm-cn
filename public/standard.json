@@ -1595,14 +1595,12 @@
           [
             "zoom"
           ],
-          8,
-          9,
-          11,
+          3,
           10,
+          8,
           14,
-          11,
-          16,
-          12
+          14,
+          18
         ],
         "text-max-width": 8,
         "symbol-sort-key": 3
@@ -1716,12 +1714,14 @@
           [
             "zoom"
           ],
-          3,
-          10,
           8,
+          9,
+          11,
+          10,
           14,
-          14,
-          18
+          11,
+          16,
+          12
         ],
         "text-max-width": 8,
         "symbol-sort-key": [
@@ -1817,8 +1817,8 @@
       "paint": {
         "text-color": "hsl(220, 25%, 20%)",
         "text-halo-color": "hsl(20, 25%, 100%)",
-        "text-halo-width": 1.2,
-        "text-halo-blur": 1
+        "text-halo-width": 2,
+        "text-halo-blur": 0.5
       }
     },
     {

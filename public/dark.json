@@ -1595,14 +1595,12 @@
           [
             "zoom"
           ],
-          8,
-          9,
-          11,
+          3,
           10,
+          8,
           14,
-          11,
-          16,
-          12
+          14,
+          18
         ],
         "text-max-width": 8,
         "symbol-sort-key": 3
@@ -1641,14 +1639,7 @@
             [
               "capital",
               "state_capital",
-              "city",
-              "town",
-              "village",
-              "hamlet",
-              "suburb",
-              "quarter",
-              "neighbourhood",
-              "isolated_dwelling"
+              "city"
             ]
           ]
         ],
