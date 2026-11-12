@@ -36,7 +36,12 @@ export const RAILWAY_LEGENDS: Record<string, ModeLegend> = {
           { label: '地铁', color: '#0300c3', width: 2 },
           { label: '轻轨', color: '#00bd14', width: 1.5 },
           { label: '有轨电车', color: '#d877b8', width: 1.5 },
-          { label: '规划/在建铁路', color: '#000000', width: 3, pattern: 'dashed' },
+          {
+            label: '规划/在建铁路',
+            color: '#000000',
+            width: 3,
+            pattern: 'dashed',
+          },
           { label: '废弃铁路', color: '#70584d', width: 2, pattern: 'dashed' },
           { label: '遗迹铁路', color: '#7f6a62', width: 2, pattern: 'dashed' },
           { label: '历史铁路', color: '#94847e', width: 2, pattern: 'dashed' },
@@ -91,9 +96,7 @@ export const RAILWAY_LEGENDS: Record<string, ModeLegend> = {
     categories: [
       {
         title: '信号类型',
-        items: [
-          { label: '无数据', color: '#C0C0C0' },
-        ],
+        items: [{ label: '无数据', color: '#C0C0C0' }],
       },
     ],
   },
@@ -135,7 +138,7 @@ export const RAILWAY_LEGENDS: Record<string, ModeLegend> = {
           { label: '12.5kV 60Hz', color: '#999900' },
           { label: '20kV 50Hz', color: '#FFCC66' },
           { label: '20kV 60Hz', color: '#FF9966' },
-        ]
+        ],
       },
     ],
   },

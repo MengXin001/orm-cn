@@ -38,7 +38,7 @@ export function optimizeLayerPerformance(map: maplibregl.Map) {
  */
 export function setupViewportOptimization(map: maplibregl.Map) {
   const container = map.getContainer()
-  
+
   // Use Intersection Observer for visibility-based rendering
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(
@@ -50,7 +50,7 @@ export function setupViewportOptimization(map: maplibregl.Map) {
           }
         })
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     )
 
     observer.observe(container)
@@ -65,14 +65,15 @@ export function setupViewportOptimization(map: maplibregl.Map) {
 export function smoothZoom(
   map: maplibregl.Map,
   zoomLevel: number,
-  duration: number = 1000
+  duration: number = 1000,
 ) {
   const currentZoom = map.getZoom()
   const zoomDiff = zoomLevel - currentZoom
   const steps = 60
   let currentStep = 0
 
-  const easeInOutQuad = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)
+  const easeInOutQuad = (t: number) =>
+    t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
 
   const interval = setInterval(() => {
     currentStep++
@@ -96,7 +97,7 @@ export function setupTileCache() {
     const request = window.indexedDB.open('MapTileCache', 1)
 
     request.onerror = () => console.warn('Tile cache not available')
-    
+
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result
       if (!db.objectStoreNames.contains('tiles')) {
@@ -111,7 +112,7 @@ export function setupTileCache() {
  */
 export function debounce<T extends (...args: any[]) => void>(
   func: T,
-  wait: number
+  wait: number,
 ): T {
   let timeout: ReturnType<typeof setTimeout> | null = null
 
@@ -126,7 +127,7 @@ export function debounce<T extends (...args: any[]) => void>(
  */
 export function throttle<T extends (...args: any[]) => void>(
   func: T,
-  limit: number
+  limit: number,
 ): T {
   let lastCall = 0
 

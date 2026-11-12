@@ -13,8 +13,12 @@ import {
   isBaseMapAvailable,
   type TokenConfig,
 } from '@/lib/map-config'
-import { setupTileCache, setupViewportOptimization } from '@/lib/map-performance'
+import {
+  setupTileCache,
+  setupViewportOptimization,
+} from '@/lib/map-performance'
 import { MapControls } from './map-controls'
+import { useTheme } from '@/hooks/use-theme'
 
 const TEXT = {
   title: 'OpenRailwayMap CN',
@@ -42,26 +46,30 @@ export function RailwayMap() {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const geolocateRef = useRef<maplibregl.GeolocateControl | null>(null)
-  const skipFirstStyleUpdate = useRef(true)
+  const activeStyleKeyRef = useRef<string | null>(null)
+  const railModeRef = useRef('standard')
+  const { theme, mounted: themeMounted, toggleTheme } = useTheme()
 
   const [tokens] = useState<TokenConfig>({
     tdt: process.env.NEXT_PUBLIC_TDT_TOKEN || '',
-    mapbox: process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '',
   })
 
-  const [baseMap, setBaseMap] = useState(() => getDefaultBaseMapKey(tokens))
+  const [baseMap, setBaseMap] = useState(() => getDefaultBaseMapKey())
   const [railMode, setRailMode] = useState('standard')
   const [locateStatus, setLocateStatus] = useState('idle')
   const [updateTime, setUpdateTime] = useState('不可用')
   const [agoHours, setAgoHours] = useState(0)
+  const styleKey = baseMap === 'osm_vector' ? `${baseMap}:${theme}` : baseMap
 
   const baseOptions = BASEMAPS.map((item) => ({
     ...item,
     available: isBaseMapAvailable(item, tokens),
   }))
 
-  const activeBase = baseOptions.find((item) => item.key === baseMap) ?? baseOptions[0]
-  const activeRail = RAILWAY_MODES.find((item) => item.key === railMode) ?? RAILWAY_MODES[0]
+  const activeBase =
+    baseOptions.find((item) => item.key === baseMap) ?? baseOptions[0]
+  const activeRail =
+    RAILWAY_MODES.find((item) => item.key === railMode) ?? RAILWAY_MODES[0]
 
   useEffect(() => {
     fetch('/v2/timestamp')
@@ -75,7 +83,9 @@ export function RailwayMap() {
         const lastUpdate = new Date(0)
         lastUpdate.setUTCSeconds(timestamp)
         setUpdateTime(lastUpdate.toLocaleString())
-        setAgoHours(Math.floor((Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60)))
+        setAgoHours(
+          Math.floor((Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60)),
+        )
       })
       .catch(() => {
         setUpdateTime('不可用')
@@ -101,65 +111,71 @@ export function RailwayMap() {
   }, [])
 
   useEffect(() => {
-    if (!mapContainerRef.current) return
+    // Resolve the saved/system theme before requesting the first map style.
+    // Strict Mode's initial effect replay happens while themeMounted is false.
+    if (!themeMounted || !mapContainerRef.current) return
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: buildStyle(baseMap, tokens) as maplibregl.StyleSpecification | string,
+      style: buildStyle(baseMap, tokens, theme) as
+        maplibregl.StyleSpecification | string,
       center: DEFAULT_VIEW.center,
       zoom: DEFAULT_VIEW.zoom,
       maxPitch: 80,
       pitch: 0,
       bearing: 0,
-      attributionControl: true,
+      attributionControl: {},
+      refreshExpiredTiles: false,
     })
 
     mapRef.current = map
+    activeStyleKeyRef.current = styleKey
     setupTileCache()
-    setupViewportOptimization(map)
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'top-right')
-    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left')
+    const disposeViewport = setupViewportOptimization(map)
+    map.addControl(
+      new maplibregl.NavigationControl({ visualizePitch: false }),
+      'top-right',
+    )
+    map.addControl(
+      new maplibregl.ScaleControl({ unit: 'metric' }),
+      'bottom-left',
+    )
 
     const geolocate = new maplibregl.GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
       trackUserLocation: true,
-      showUserHeading: true,
       showAccuracyCircle: true,
       fitBoundsOptions: { maxZoom: 20 },
     })
 
     geolocateRef.current = geolocate
     map.addControl(geolocate, 'top-right')
-
     geolocate.on('trackuserlocationstart', () => setLocateStatus('tracking'))
     geolocate.on('trackuserlocationend', () => setLocateStatus('idle'))
     geolocate.on('geolocate', () => setLocateStatus('located'))
     geolocate.on('error', () => setLocateStatus('error'))
 
-    const onMapLoad = () => {
-      ensureRailwayOverlay(map, railMode)
-      localizeControls(map.getContainer())
-    }
-
     const onStyleLoad = () => {
-      ensureRailwayOverlay(map, railMode)
+      ensureRailwayOverlay(map, railModeRef.current)
       localizeControls(map.getContainer())
     }
 
-    map.on('load', onMapLoad)
     map.on('style.load', onStyleLoad)
 
     return () => {
-      map.off('load', onMapLoad)
       map.off('style.load', onStyleLoad)
+      disposeViewport?.()
       map.remove()
       mapRef.current = null
       geolocateRef.current = null
+      activeStyleKeyRef.current = null
     }
+    // Theme and basemap changes update the existing map in the effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [themeMounted, localizeControls])
 
   useEffect(() => {
+    railModeRef.current = railMode
     const map = mapRef.current
     if (map && map.isStyleLoaded()) {
       ensureRailwayOverlay(map, railMode)
@@ -168,29 +184,32 @@ export function RailwayMap() {
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
+    if (!map || activeStyleKeyRef.current === styleKey) return
 
-    if (skipFirstStyleUpdate.current) {
-      skipFirstStyleUpdate.current = false
-      return
-    }
+    activeStyleKeyRef.current = styleKey
+    map.setStyle(
+      buildStyle(baseMap, tokens, theme) as
+        maplibregl.StyleSpecification | string,
+      {
+        diff: true,
+        // Keep the railway source and layer while changing the basemap palette.
+        // Both themes share tile sources and layer IDs, so cached tiles stay in use.
+        transformStyle: (previousStyle, nextStyle) => {
+          const source = previousStyle?.sources.openrailwaymap
+          const layer = previousStyle?.layers.find(
+            (item) => item.id === 'openrailwaymap-layer',
+          )
+          if (!source || !layer) return nextStyle
 
-    const view = {
-      center: map.getCenter(),
-      zoom: map.getZoom(),
-      bearing: map.getBearing(),
-      pitch: map.getPitch(),
-    }
-
-    const restoreView = () => {
-      map.jumpTo(view)
-      ensureRailwayOverlay(map, railMode)
-      localizeControls(map.getContainer())
-    }
-
-    map.once('style.load', restoreView)
-    map.setStyle(buildStyle(baseMap, tokens) as maplibregl.StyleSpecification | string, { diff: false })
-  }, [baseMap, tokens, railMode, localizeControls])
+          return {
+            ...nextStyle,
+            sources: { ...nextStyle.sources, openrailwaymap: source },
+            layers: [...nextStyle.layers, layer],
+          }
+        },
+      },
+    )
+  }, [baseMap, tokens, theme, styleKey])
 
   const handleLocate = () => {
     if (!geolocateRef.current) {
@@ -211,6 +230,9 @@ export function RailwayMap() {
         activeRail={activeRail}
         baseMap={baseMap}
         railMode={railMode}
+        theme={theme}
+        themeMounted={themeMounted}
+        onThemeToggle={toggleTheme}
         locateStatus={locateStatus}
         locateStatusText={LOCATE_STATUS_TEXT}
         updateTime={updateTime}

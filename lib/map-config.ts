@@ -8,17 +8,20 @@ export const DEFAULT_VIEW = {
 export interface BasemapOption {
   key: string
   label: string
-  requiresToken?: 'tdt' | 'mapbox'
+  requiresToken?: 'tdt'
 }
 
 export const BASEMAPS: BasemapOption[] = [
+  { key: 'osm_vector', label: 'OpenStreetMap Vector' },
   { key: 'osm', label: 'OpenStreetMap' },
   { key: 'esri', label: 'Esri World Imagery' },
-  { key: 'esri_label', label: 'Esri World Imagery Label', requiresToken: 'tdt' },
+  {
+    key: 'esri_label',
+    label: 'Esri World Imagery Label',
+    requiresToken: 'tdt',
+  },
   { key: 'tdt_vec', label: '天地图矢量', requiresToken: 'tdt' },
   { key: 'tdt_img', label: '天地图影像', requiresToken: 'tdt' },
-  { key: 'mapbox_streets', label: 'Mapbox Streets', requiresToken: 'mapbox' },
-  { key: 'mapbox_satellite', label: 'Mapbox Satellite', requiresToken: 'mapbox' },
 ]
 
 export interface RailwayMode {
@@ -36,23 +39,26 @@ export const RAILWAY_MODES: RailwayMode[] = [
 
 export interface TokenConfig {
   tdt: string
-  mapbox: string
 }
 
-export function getDefaultBaseMapKey(tokens: TokenConfig): string {
-  if (tokens.tdt) return 'tdt_vec'
-  if (tokens.mapbox) return 'mapbox_streets'
-  return 'osm'
+export function getDefaultBaseMapKey(): string {
+  return 'osm_vector'
 }
 
-export function isBaseMapAvailable(basemap: BasemapOption, tokens: TokenConfig): boolean {
+export function isBaseMapAvailable(
+  basemap: BasemapOption,
+  tokens: TokenConfig,
+): boolean {
   if (!basemap.requiresToken) return true
   if (basemap.requiresToken === 'tdt') return !!tokens.tdt
-  if (basemap.requiresToken === 'mapbox') return !!tokens.mapbox
   return false
 }
 
-export function buildStyle(baseMapKey: string, tokens: TokenConfig): string | object {
+export function buildStyle(
+  baseMapKey: string,
+  tokens: TokenConfig,
+  theme: 'light' | 'dark' = 'light',
+): string | object {
   switch (baseMapKey) {
     case 'esri':
       return {
@@ -144,10 +150,8 @@ export function buildStyle(baseMapKey: string, tokens: TokenConfig): string | ob
           { id: 'tdt-cia-layer', type: 'raster', source: 'tdt-cia' },
         ],
       }
-    case 'mapbox_streets':
-      return `https://api.mapbox.com/styles/v1/mapbox/streets-v12?access_token=${tokens.mapbox}`
-    case 'mapbox_satellite':
-      return `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12?access_token=${tokens.mapbox}`
+    case 'osm_vector':
+      return theme === 'dark' ? '/dark.json' : '/standard.json'
     case 'osm':
     default:
       return {
@@ -156,7 +160,7 @@ export function buildStyle(baseMapKey: string, tokens: TokenConfig): string | ob
           osm: {
             type: 'raster',
             tiles: ['https://osm-tiles.moexin.cn/{z}/{x}/{y}.png'],
-            tileSize: 256
+            tileSize: 256,
           },
         },
         layers: [{ id: 'osm-layer', type: 'raster', source: 'osm' }],
@@ -169,30 +173,32 @@ const RAILWAY_TILE_URL = 'https://orm-tiles.moexin.cn'
 export function ensureRailwayOverlay(map: maplibregl.Map, mode: string): void {
   const sourceId = 'openrailwaymap'
   const layerId = 'openrailwaymap-layer'
+  const tileUrl = `${RAILWAY_TILE_URL}/${mode}/{z}/{x}/{y}.png`
+  const source = map.getSource(sourceId) as
+    maplibregl.RasterTileSource | undefined
 
-  // Remove existing layer and source if they exist
-  if (map.getLayer(layerId)) {
-    map.removeLayer(layerId)
+  if (source) {
+    if (source.tiles?.[0] !== tileUrl) {
+      source.setTiles([tileUrl])
+    }
+  } else {
+    map.addSource(sourceId, {
+      type: 'raster',
+      tiles: [tileUrl],
+      tileSize: 256,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap contributors</a>, <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a>',
+    })
   }
-  if (map.getSource(sourceId)) {
-    map.removeSource(sourceId)
+
+  if (!map.getLayer(layerId)) {
+    map.addLayer({
+      id: layerId,
+      type: 'raster',
+      source: sourceId,
+      paint: {
+        'raster-opacity': 1,
+      },
+    })
   }
-
-  // Add railway overlay source
-  map.addSource(sourceId, {
-    type: 'raster',
-    tiles: [`${RAILWAY_TILE_URL}/${mode}/{z}/{x}/{y}.png`],
-    tileSize: 256,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap contributors</a>, <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a>',
-  })
-
-  // Add railway overlay layer
-  map.addLayer({
-    id: layerId,
-    type: 'raster',
-    source: sourceId,
-    paint: {
-      'raster-opacity': 1,
-    },
-  })
 }

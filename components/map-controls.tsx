@@ -1,6 +1,19 @@
 'use client'
 
-import { Train, Gauge, Radio, Zap, Map, Crosshair, Check, X, Menu, List, Moon, Sun } from 'lucide-react'
+import {
+  Train,
+  Gauge,
+  Radio,
+  Zap,
+  Map,
+  Crosshair,
+  Check,
+  X,
+  Menu,
+  List,
+  Moon,
+  Sun,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -16,7 +29,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { useTheme } from '@/hooks/use-theme'
 import { getLegendByMode, type LegendItem } from '@/lib/legend-config'
 import type { BasemapOption, RailwayMode } from '@/lib/map-config'
 
@@ -27,6 +39,9 @@ interface MapControlsProps {
   activeRail: RailwayMode
   baseMap: string
   railMode: string
+  theme: 'light' | 'dark'
+  themeMounted: boolean
+  onThemeToggle: () => void
   locateStatus: string
   locateStatusText: Record<string, string>
   updateTime: string
@@ -65,7 +80,10 @@ function ThemeToggleButton({
   theme: 'light' | 'dark'
   mounted: boolean
   toggleTheme: () => void
-  text: Pick<MapControlsProps['text'], 'themeToggleLabel' | 'themeToDarkLabel' | 'themeToLightLabel'>
+  text: Pick<
+    MapControlsProps['text'],
+    'themeToggleLabel' | 'themeToDarkLabel' | 'themeToLightLabel'
+  >
 }) {
   const nextThemeLabel = !mounted
     ? text.themeToggleLabel
@@ -84,12 +102,14 @@ function ThemeToggleButton({
     >
       <span className="relative flex h-4 w-4 items-center justify-center">
         <Sun
-          className={`absolute h-4 w-4 transition-opacity ${mounted && theme === 'dark' ? 'opacity-100' : 'opacity-0'
-            }`}
+          className={`absolute h-4 w-4 transition-opacity ${
+            mounted && theme === 'dark' ? 'opacity-100' : 'opacity-0'
+          }`}
         />
         <Moon
-          className={`absolute h-4 w-4 transition-opacity ${mounted && theme === 'light' ? 'opacity-100' : 'opacity-0'
-            }`}
+          className={`absolute h-4 w-4 transition-opacity ${
+            mounted && theme === 'light' ? 'opacity-100' : 'opacity-0'
+          }`}
         />
       </span>
       <span className="sr-only">{nextThemeLabel}</span>
@@ -99,10 +119,18 @@ function ThemeToggleButton({
 
 function LegendLine({ item }: { item: LegendItem }) {
   const dashArray =
-    item.pattern === 'dashed' ? '4,2' : item.pattern === 'dotted' ? '1,2' : undefined
+    item.pattern === 'dashed'
+      ? '4,2'
+      : item.pattern === 'dotted'
+        ? '1,2'
+        : undefined
 
   return (
-    <svg className="h-5 w-8 flex-shrink-0" viewBox="0 0 32 20" preserveAspectRatio="none">
+    <svg
+      className="h-5 w-8 flex-shrink-0"
+      viewBox="0 0 32 20"
+      preserveAspectRatio="none"
+    >
       <line
         x1="0"
         y1="10"
@@ -131,9 +159,14 @@ function LegendPanel({ railMode }: { railMode: string }) {
             </h3>
             <div className="space-y-2">
               {category.items.map((item) => (
-                <div key={`${category.title}-${item.label}`} className="flex items-center gap-3">
+                <div
+                  key={`${category.title}-${item.label}`}
+                  className="flex items-center gap-3"
+                >
                   <LegendLine item={item} />
-                  <span className="text-xs leading-5 text-foreground break-words">{item.label}</span>
+                  <span className="text-xs leading-5 text-foreground break-words">
+                    {item.label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -200,22 +233,26 @@ function SidebarContent({
               <button
                 key={mode.key}
                 onClick={() => onRailModeChange(mode.key)}
-                className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all ${railMode === mode.key
-                  ? 'border-primary bg-accent text-foreground shadow-sm'
-                  : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent/50'
-                  }`}
+                className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all ${
+                  railMode === mode.key
+                    ? 'border-primary bg-accent text-foreground shadow-sm'
+                    : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent/50'
+                }`}
               >
                 <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-md ${railMode === mode.key
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
-                    }`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-md ${
+                    railMode === mode.key
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
                 >
                   {RAIL_ICONS[mode.key] || <Train className="h-4 w-4" />}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold">{mode.label}</p>
-                  <p className="truncate text-xs text-muted-foreground">{mode.description}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {mode.description}
+                  </p>
                 </div>
               </button>
             ))}
@@ -229,11 +266,14 @@ function SidebarContent({
           </p>
           <LegendPanel railMode={railMode} />
         </div>
-
       </div>
 
       <div className="border-t border-border p-4">
-        <Button onClick={onLocate} disabled={locateStatus === 'locating'} className="w-full">
+        <Button
+          onClick={onLocate}
+          disabled={locateStatus === 'locating'}
+          className="w-full"
+        >
           <Crosshair className="mr-2 h-4 w-4" />
           {text.locateButton}
         </Button>
@@ -245,21 +285,32 @@ function SidebarContent({
   )
 }
 
-function UpdateTimestamp({ agoHours, updateTime }: Pick<MapControlsProps, 'agoHours' | 'updateTime'>) {
+function UpdateTimestamp({
+  agoHours,
+  updateTime,
+}: Pick<MapControlsProps, 'agoHours' | 'updateTime'>) {
   return (
     <div className="flex flex-wrap items-center text-xs">
       <span className="pr-1 font-medium uppercase tracking-wide text-muted-foreground">
         最后更新于:
       </span>
       <span className="font-medium text-foreground">{updateTime}</span>
-      {agoHours > 0 && <span className="text-muted-foreground">, {agoHours} 小时前</span>}
+      {agoHours > 0 && (
+        <span className="text-muted-foreground">, {agoHours} 小时前</span>
+      )}
     </div>
   )
 }
 
 export function MapControls(props: MapControlsProps) {
-  const { agoHours, updateTime, text } = props
-  const { theme, toggleTheme, mounted } = useTheme()
+  const {
+    agoHours,
+    updateTime,
+    text,
+    theme,
+    themeMounted: mounted,
+    onThemeToggle: toggleTheme,
+  } = props
 
   return (
     <>
@@ -273,7 +324,9 @@ export function MapControls(props: MapControlsProps) {
               text={text}
             />
             <div>
-              <h1 className="text-xl font-semibold text-foreground">{text.title}</h1>
+              <h1 className="text-xl font-semibold text-foreground">
+                {text.title}
+              </h1>
               <UpdateTimestamp agoHours={agoHours} updateTime={updateTime} />
             </div>
           </div>
@@ -291,15 +344,23 @@ export function MapControls(props: MapControlsProps) {
               <span className="sr-only">打开菜单</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="flex h-full w-80 max-w-[85vw] flex-col p-0">
+          <SheetContent
+            side="left"
+            className="flex h-full w-80 max-w-[85vw] flex-col p-0"
+          >
             <SheetHeader className="border-b border-border p-4 text-left">
               <SheetTitle className="flex items-start gap-3 text-left">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Train className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-base font-semibold text-foreground">{text.title}</p>
-                  <UpdateTimestamp agoHours={agoHours} updateTime={updateTime} />
+                  <p className="text-base font-semibold text-foreground">
+                    {text.title}
+                  </p>
+                  <UpdateTimestamp
+                    agoHours={agoHours}
+                    updateTime={updateTime}
+                  />
                 </div>
               </SheetTitle>
             </SheetHeader>
@@ -312,7 +373,9 @@ export function MapControls(props: MapControlsProps) {
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Train className="h-4 w-4" />
           </div>
-          <span className="truncate font-semibold text-foreground">{text.title}</span>
+          <span className="truncate font-semibold text-foreground">
+            {text.title}
+          </span>
           <div className="ml-auto">
             <ThemeToggleButton
               theme={theme}

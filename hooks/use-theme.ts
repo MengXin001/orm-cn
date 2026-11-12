@@ -16,7 +16,9 @@ export function useTheme() {
       applyTheme(storedTheme)
     } else {
       const isDarkByTime = isDarkByLocalTime()
-      const isDarkBySystem = window.matchMedia('(prefers-color-scheme: dark)').matches
+      const isDarkBySystem = window.matchMedia(
+        '(prefers-color-scheme: dark)',
+      ).matches
       const preferredTheme = isDarkByTime || isDarkBySystem ? 'dark' : 'light'
 
       setTheme(preferredTheme)

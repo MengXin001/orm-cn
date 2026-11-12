@@ -1,4 +1,4 @@
-import { RailwayMap } from "@/components/railway-map"
+import { RailwayMap } from '@/components/railway-map'
 
 export default function Home() {
   return (
